@@ -1,0 +1,38 @@
+repo_key: SyncMechanism
+src_root: sync_mechanism
+tests_root: tests
+
+# ---------------------------------------------------------------------------
+# Privacy / boundary enforcement (Custodian B-class)
+# ---------------------------------------------------------------------------
+# This repo is public-safe. It must contain zero machine-specific data and
+# zero names that the boundary disclosure artifact marks as private. The
+# pre-push custodian guard fails closed on any forbidden name in a tracked file.
+privacy:
+  require_boundary_artifact: true
+
+# ---------------------------------------------------------------------------
+# Audit: per-detector exclusions
+# ---------------------------------------------------------------------------
+# sync_mechanism/ holds thin CLI shim modules (install_cli, startup_cli, main)
+# that shell out to syncthing/*.py. They have no contracts/IO boundary layer,
+# so the structural T1/T6/T7 detectors do not apply.
+audit:
+  # startup_cli reads XDG_CURRENT_DESKTOP to pick the autostart template — this
+  # is OS-detection, not a config layer to be funneled through.
+  c13_allowed_paths:
+    - "sync_mechanism/startup_cli.py"
+  exclude_paths:
+    T1:
+      - "sync_mechanism/**"
+    T6:
+      - "sync_mechanism/**"
+    T7:
+      - "sync_mechanism/**"
+    T8:
+      # install/tray live in the syncthing/ runtime dir (not a Python package);
+      # these tests import them via sys.path, and the shim test exercises the
+      # bash entrypoints. None import the sync_mechanism package directly.
+      - "tests/test_install.py"
+      - "tests/test_tray.py"
+      - "tests/test_shims.py"

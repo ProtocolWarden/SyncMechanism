@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sync-mechanism"
+version = "0.1.0"
+description = "Generic Syncthing install/runtime mechanism (public-safe; config-driven)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "typer[all]>=0.12",
+  "rich>=13.0",
+  "pystray>=0.19",
+  "Pillow>=10.0",
+]
+
+[project.urls]
+Repository = "https://github.com/ProtocolWarden/SyncMechanism"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+]
+
+[project.scripts]
+sync-mechanism = "sync_mechanism.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sync_mechanism*"]
+
+[tool.setuptools.package-data]
+# The syncthing/ runtime scripts ship alongside the package; install.py reads
+# its sibling `version` file at runtime, and main.py shells out to tray.py.
+sync_mechanism = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "S", "B", "RUF"]
+ignore = [
+    "S101",   # assert in tests
+    "S603",   # subprocess in tests
+    "S607",   # partial executable path in tests
+]
+
+[tool.ruff.lint.per-file-ignores]
+"syncthing/install.py" = [
+    "S310",   # urlretrieve from github.com releases — known-good URL
+    "S202",   # tarfile/zipfile.extractall on downloaded release archives
+]
+"tests/*" = [
+    "S310",
+]

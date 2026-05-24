@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# .console — track the editable truth files; ignore regenerated context.
+.console/*
+!.console/task.md
+!.console/backlog.md
+!.console/guidelines.md
+!.console/log.md
+CLAUDE.md
+.custodian/tmp*.yaml
