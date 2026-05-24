@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import NoReturn
 
 from .install_cli import cmd_install, cmd_install_check, cmd_install_list
+from .spec_cli import cmd_spec_coverage, cmd_spec_resolve, cmd_spec_validate
 from .startup_cli import cmd_startup_disable, cmd_startup_enable, cmd_startup_status
 
 _TRAY_PY = Path(__file__).resolve().parents[1] / "syncthing" / "tray.py"
@@ -77,6 +78,37 @@ def build_parser() -> argparse.ArgumentParser:
         return 0
 
     p_startup.set_defaults(func=_startup_help)
+
+    # -- spec ------------------------------------------------------------------
+    p_spec = sub.add_parser(
+        "spec", help="Validate / analyse manifest-declared sync specs."
+    )
+    spec_sub = p_spec.add_subparsers(dest="spec_action", metavar="<action>")
+
+    p_spec_validate = spec_sub.add_parser("validate", help="Parse + validate a sync spec.")
+    p_spec_validate.add_argument("spec", help="Path to the sync-spec YAML.")
+    p_spec_validate.add_argument("--binding", help="Optional binding YAML to also validate.")
+    p_spec_validate.set_defaults(func=cmd_spec_validate)
+
+    p_spec_coverage = spec_sub.add_parser(
+        "coverage", help="Report mode gaps and (with --binding) folder consistency."
+    )
+    p_spec_coverage.add_argument("spec", help="Path to the sync-spec YAML.")
+    p_spec_coverage.add_argument("--binding", help="Optional binding YAML to cross-check folders.")
+    p_spec_coverage.set_defaults(func=cmd_spec_coverage)
+
+    p_spec_resolve = spec_sub.add_parser(
+        "resolve", help="Join a spec against a binding into a transport plan."
+    )
+    p_spec_resolve.add_argument("spec", help="Path to the sync-spec YAML.")
+    p_spec_resolve.add_argument("binding", help="Path to the binding YAML.")
+    p_spec_resolve.set_defaults(func=cmd_spec_resolve)
+
+    def _spec_help(args: argparse.Namespace) -> int:
+        p_spec.print_help()
+        return 0
+
+    p_spec.set_defaults(func=_spec_help)
 
     return parser
 

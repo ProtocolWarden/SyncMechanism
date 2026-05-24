@@ -14,4 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   desktop tray launcher (`tray`), and login-startup registration (`startup`).
 - Optional, env-driven port-forward hook for the tray
   (`SYNCTHING_TRAY_PORTFORWARD_SCRIPT`); disabled when unset.
+- **Sync-spec contract** (`sync_mechanism/spec/`): the manifest-declared
+  vocabulary for fleet data sync — `SyncMode` (copy/in-repo/external),
+  `SyncSpec` (public shape) and `SyncBinding` (private binding), YAML
+  loader/validator, and coverage analysis (declared-but-modeless assets surface
+  as gaps; spec/binding folder consistency is checked). New `spec`
+  CLI (`validate` / `coverage` / `resolve`) and `examples/` declarations.
 - AGPL-3.0-or-later license.

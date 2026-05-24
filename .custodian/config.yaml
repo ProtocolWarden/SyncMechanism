@@ -22,13 +22,18 @@ audit:
   # is OS-detection, not a config layer to be funneled through.
   c13_allowed_paths:
     - "sync_mechanism/startup_cli.py"
+  # Only the thin CLI shim modules are exempt from the structural test
+  # detectors. The sync_mechanism/spec/ package is real logic and is covered by
+  # tests/test_spec_*.py, so it is intentionally NOT excluded here.
   exclude_paths:
-    T1:
-      - "sync_mechanism/**"
-    T6:
-      - "sync_mechanism/**"
-    T7:
-      - "sync_mechanism/**"
+    T1: &shim_modules
+      - "sync_mechanism/install_cli.py"
+      - "sync_mechanism/startup_cli.py"
+      - "sync_mechanism/spec_cli.py"
+      - "sync_mechanism/main.py"
+      - "sync_mechanism/__main__.py"
+    T6: *shim_modules
+    T7: *shim_modules
     T8:
       # install/tray live in the syncthing/ runtime dir (not a Python package);
       # these tests import them via sys.path, and the shim test exercises the

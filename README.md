@@ -10,6 +10,9 @@ sync-mechanism install check  →  compare installed vs pinned version
 sync-mechanism install list   →  list config archives
 sync-mechanism tray           →  start the system tray app
 sync-mechanism startup enable →  launch the tray at login
+sync-mechanism spec validate  →  parse + validate a manifest sync spec
+sync-mechanism spec coverage  →  report sync-mode gaps and binding consistency
+sync-mechanism spec resolve   →  join a spec + private binding into a plan
 ```
 
 ## What this repo is
@@ -83,6 +86,36 @@ python -m sync_mechanism <command>
   hook for the integrating layer.
 - `startup_cli.py` registers/deregisters the tray at login on both Linux and
   Windows.
+
+## Sync spec — the manifest-declared sync contract
+
+`sync_mechanism/spec/` defines the vocabulary a manifest uses to declare *what*
+data syncs and *how*. It is the public half of the sync topology (see the
+PlatformDeployment ADR "Sync topology: manifest as sync authority"): the
+mechanism owns the vocabulary; manifests declare against it.
+
+Two layers, mirroring the public-mechanism / private-binding split:
+
+- **`SyncSpec` (public shape)** — declared in a manifest. Each `SyncAsset` has an
+  `id`, a `source`, a logical `folder`, a `data_class`, and an optional `mode`
+  (`copy` / `in-repo` / `external`). It carries **no** device IDs, paths, or
+  secrets, so it is safe in a public manifest. See `examples/sync-spec.yaml`.
+- **`SyncBinding` (private binding)** — lives in the private fleet layer. It maps
+  each folder name to a concrete path, device set, and Syncthing folder id. See
+  `examples/sync-binding.example.yaml`.
+
+```text
+sync-mechanism spec validate examples/sync-spec.yaml
+sync-mechanism spec coverage examples/sync-spec.yaml --binding examples/sync-binding.example.yaml
+sync-mechanism spec resolve  examples/sync-spec.yaml examples/sync-binding.example.yaml
+```
+
+**Coverage is observable**: an asset declared without a `mode` is a detectable
+gap (`spec coverage` reports it and exits non-zero), not a silent omission.
+`spec resolve` joins a spec to a binding into a transport plan and fails if any
+folder is referenced but unbound. This contract is what the (future) backup /
+restore orchestration consumes — the orchestration stays out of this repo until
+it is config-driven off these specs.
 
 ## License
 
