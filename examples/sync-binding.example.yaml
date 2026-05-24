@@ -1,0 +1,29 @@
+# Example sync BINDING — the PRIVATE layer.
+#
+# Maps each logical folder name used by a sync spec to a concrete Syncthing
+# folder: an on-disk path, the device set it replicates across, and the
+# Syncthing folder id. THIS FILE BELONGS IN THE PRIVATE FLEET LAYER, never in a
+# public repo — real bindings contain machine-specific paths and device labels.
+# The values below are placeholders for illustration only.
+schema_version: "1.0"
+
+folders:
+  platform-config:
+    path: ~/sync/platform/config
+    devices: [primary, secondary]
+    syncthing_folder_id: platform-config
+
+  media-assets:
+    path: ~/sync/media/assets
+    devices: [primary]
+    syncthing_folder_id: media-assets
+
+  platform-backups:
+    path: ~/sync/platform/backups
+    devices: [primary, secondary]
+    syncthing_folder_id: platform-backups
+
+  cognition:
+    path: ~/sync/cognition
+    devices: [primary, secondary]
+    syncthing_folder_id: cognition

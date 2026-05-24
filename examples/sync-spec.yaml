@@ -1,0 +1,46 @@
+# Example sync spec — the PUBLIC shape a manifest declares.
+#
+# This declares WHAT syncs and HOW (mode), plus the LOGICAL folder each asset
+# belongs to. It carries no device IDs, no absolute paths, and no secrets, so it
+# is safe to live in a public manifest. The concrete folder targets are supplied
+# separately by a private binding (see sync-binding.example.yaml).
+schema_version: "1.0"
+scope: PlatformManifest
+
+assets:
+  # Small operational state — snapshotted into a sync/ directory.
+  - id: oc-operational
+    data_class: operational
+    mode: copy
+    source: OperationsCenter/state
+    folder: platform-config
+
+  # Configs, work items, campaigns — also small, copy mode.
+  - id: oc-campaigns
+    data_class: operational
+    mode: copy
+    source: OperationsCenter/state/campaigns
+    folder: platform-config
+
+  # Large model / media assets — synced in place.
+  - id: media-models
+    data_class: asset
+    mode: in-repo
+    source: models/
+    folder: media-assets
+
+  # Large backup archives that cannot live in-repo — synced from out-of-tree.
+  - id: platform-backups
+    data_class: operational
+    mode: external
+    source: ~/platform-backups
+    folder: platform-backups
+
+  # Declared but not yet given a mode — this is a COVERAGE GAP that
+  # `sync-mechanism spec coverage` will surface. Remove the comment on `mode`
+  # to close it.
+  - id: per-project-cognition
+    data_class: cognition
+    # mode: copy
+    source: .console/sessions
+    folder: cognition
