@@ -18,6 +18,9 @@ privacy:
 # that shell out to syncthing/*.py. They have no contracts/IO boundary layer,
 # so the structural T1/T6/T7 detectors do not apply.
 audit:
+  # This repo's .console/ is reconciled + clean (leak-free, under budget), so the
+  # R1/R2 reconciliation detectors enforce here.
+  reconcile_enforce: true
   # startup_cli reads XDG_CURRENT_DESKTOP to pick the autostart template — this
   # is OS-detection, not a config layer to be funneled through.
   c13_allowed_paths:

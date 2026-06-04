@@ -23,3 +23,12 @@ _Chronological continuity log. Decisions, stop points, what changed and why._
 
 - Added sync_mechanism/spec/ (modes, models, loader, coverage) — the manifest-declared vocabulary: SyncMode (copy/in-repo/external), SyncSpec public shape + SyncBinding private binding, YAML loader/validator, coverage gap detection + spec/binding resolution.
 - New `spec` CLI (validate/coverage/resolve) + examples/. Narrowed custodian T1/T6/T7 exclusions to shim modules only (spec/ is real-tested). PyYAML dep. 26 new tests (71 total).
+
+## 2026-06-04 — Console reconciliation: enforce R1/R2
+
+- ENFORCE-ONLY pass per the console-reconciliation spec. .console/ is already
+  clean (forbidden-name grep empty on tracked .console/docs) and under budget
+  (log.md = 25 lines, well under the R1 400-line budget); no prune needed.
+- Set `audit.reconcile_enforce: true` in `.custodian/config.yaml` so the
+  Custodian R1 (over-budget) and R2 (scrub-target leak) detectors enforce here.
+- Verified `cl reconcile check` GREEN; custodian audit gains no R1/R2 findings.
