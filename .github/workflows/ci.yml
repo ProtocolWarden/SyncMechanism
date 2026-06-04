@@ -42,7 +42,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
+      - name: Create virtualenv and install dependencies
+        # tests/conftest.py guards against running outside a virtualenv
+        # (asserts sys.prefix contains pyvenv.cfg), so create one explicitly.
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -e ".[dev]"
       - name: Run tests
-        run: pytest -q
+        # Activate the venv so `python3` (used by the bash shims under test)
+        # resolves to the venv interpreter that has the deps installed.
+        run: |
+          source .venv/bin/activate
+          pytest -q
