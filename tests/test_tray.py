@@ -2,6 +2,12 @@
 # Copyright (C) 2026 ProtocolWarden
 """Tests for syncthing/tray.py — headless-safe parts only."""
 
+import os
+
+# pystray picks an X11 backend at import and dies on a headless runner
+# (Xlib DisplayNameError) — force the dummy backend before `tray` pulls it in.
+os.environ.setdefault("PYSTRAY_BACKEND", "dummy")
+
 from unittest.mock import patch
 
 import tray
