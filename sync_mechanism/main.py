@@ -53,9 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_tray.set_defaults(func=_cmd_tray)
 
     # -- startup ---------------------------------------------------------------
-    p_startup = sub.add_parser(
-        "startup", help="Enable or disable tray app at login."
-    )
+    p_startup = sub.add_parser("startup", help="Enable or disable tray app at login.")
     startup_sub = p_startup.add_subparsers(dest="startup_action", metavar="<action>")
 
     p_startup_enable = startup_sub.add_parser(
@@ -80,9 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_startup.set_defaults(func=_startup_help)
 
     # -- spec ------------------------------------------------------------------
-    p_spec = sub.add_parser(
-        "spec", help="Validate / analyse manifest-declared sync specs."
-    )
+    p_spec = sub.add_parser("spec", help="Validate / analyse manifest-declared sync specs.")
     spec_sub = p_spec.add_subparsers(dest="spec_action", metavar="<action>")
 
     p_spec_validate = spec_sub.add_parser("validate", help="Parse + validate a sync spec.")

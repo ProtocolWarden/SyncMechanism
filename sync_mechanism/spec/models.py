@@ -120,6 +120,5 @@ class UnboundFolderError(KeyError):
         self.folder = folder
         self.asset_id = asset_id
         super().__init__(
-            f"asset {asset_id!r} references folder {folder!r}, "
-            "which the binding does not define"
+            f"asset {asset_id!r} references folder {folder!r}, which the binding does not define"
         )
