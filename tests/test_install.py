@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 """Tests for syncthing/install.py."""
 
 import json
@@ -14,6 +16,7 @@ INSTALL_PY = REPO_ROOT / "syncthing" / "install.py"
 
 
 # ── subprocess (CLI surface) ───────────────────────────────────────────────────
+
 
 def _run(*args: str) -> subprocess.CompletedProcess:
     return subprocess.run(
@@ -53,6 +56,7 @@ def test_list_shows_entries(populated_archive_dir, monkeypatch):
 
 # ── unit: _installed_version ───────────────────────────────────────────────────
 
+
 def test_installed_version_missing(monkeypatch):
     monkeypatch.setattr("shutil.which", lambda _: None)
     with patch.object(install, "_install_dir", return_value=Path("/nonexistent")):
@@ -69,6 +73,7 @@ def test_installed_version_found(monkeypatch, tmp_path):
 
 
 # ── unit: _archive_config ──────────────────────────────────────────────────────
+
 
 def test_archive_config_creates_zip(fake_config_dir, archive_dir, monkeypatch):
     monkeypatch.setattr(install, "_config_dir", lambda: fake_config_dir)
@@ -125,6 +130,7 @@ def test_archive_config_appends_to_existing_index(
 
 # ── unit: _read_index / _write_index ──────────────────────────────────────────
 
+
 def test_read_index_empty(tmp_path, monkeypatch):
     monkeypatch.setattr(install, "_archive_dir", lambda: tmp_path / "empty")
     assert install._read_index() == []
@@ -138,6 +144,7 @@ def test_read_write_index_roundtrip(archive_dir, monkeypatch):
 
 
 # ── unit: _pinned ──────────────────────────────────────────────────────────────
+
 
 def test_pinned_reads_version_file():
     version = install._pinned()

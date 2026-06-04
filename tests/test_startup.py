@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 """Tests for sync_mechanism/startup_cli.py."""
 
 from __future__ import annotations
@@ -8,6 +10,7 @@ from unittest.mock import MagicMock, patch
 import sync_mechanism.startup_cli as startup
 
 # ── helpers ───────────────────────────────────────────────────────────────────
+
 
 class _Args:
     pass
@@ -28,6 +31,7 @@ def _winreg_mock(value_exists: bool = True) -> MagicMock:
 
 # ── tray command ──────────────────────────────────────────────────────────────
 
+
 def test_tray_cmd_contains_executable():
     assert sys.executable in startup._tray_cmd()
 
@@ -39,6 +43,7 @@ def test_tray_cmd_contains_module_and_subcommand():
 
 
 # ── Linux: _enable_linux ──────────────────────────────────────────────────────
+
 
 def test_enable_linux_creates_desktop_file(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
@@ -68,6 +73,7 @@ def test_enable_linux_creates_parent_dirs(tmp_path):
 
 # ── Linux: _disable_linux ─────────────────────────────────────────────────────
 
+
 def test_disable_linux_removes_file(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
     desktop.parent.mkdir(parents=True)
@@ -86,6 +92,7 @@ def test_disable_linux_no_error_when_absent(tmp_path):
 
 # ── Linux: _status_linux ──────────────────────────────────────────────────────
 
+
 def test_status_linux_true_when_file_exists(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
     desktop.parent.mkdir(parents=True)
@@ -102,6 +109,7 @@ def test_status_linux_false_when_absent(tmp_path):
 
 # ── Windows: _enable_windows ──────────────────────────────────────────────────
 
+
 def test_enable_windows_calls_set_value_ex():
     wr = _winreg_mock()
     with patch.dict(sys.modules, {"winreg": wr}):
@@ -113,6 +121,7 @@ def test_enable_windows_calls_set_value_ex():
 
 
 # ── Windows: _disable_windows ─────────────────────────────────────────────────
+
 
 def test_disable_windows_calls_delete_value():
     wr = _winreg_mock()
@@ -130,6 +139,7 @@ def test_disable_windows_no_error_when_absent():
 
 # ── Windows: _status_windows ──────────────────────────────────────────────────
 
+
 def test_status_windows_true_when_value_exists():
     wr = _winreg_mock(value_exists=True)
     with patch.dict(sys.modules, {"winreg": wr}):
@@ -144,10 +154,13 @@ def test_status_windows_false_when_value_absent():
 
 # ── cmd dispatch ──────────────────────────────────────────────────────────────
 
+
 def test_cmd_enable_linux(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
-    with patch.object(startup, "_DESKTOP_PATH", desktop), \
-         patch.object(startup, "_is_windows", return_value=False):
+    with (
+        patch.object(startup, "_DESKTOP_PATH", desktop),
+        patch.object(startup, "_is_windows", return_value=False),
+    ):
         rc = startup.cmd_startup_enable(_Args())
     assert rc == 0
     assert desktop.exists()
@@ -157,8 +170,10 @@ def test_cmd_disable_linux(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
     desktop.parent.mkdir(parents=True)
     desktop.write_text("x", encoding="utf-8")
-    with patch.object(startup, "_DESKTOP_PATH", desktop), \
-         patch.object(startup, "_is_windows", return_value=False):
+    with (
+        patch.object(startup, "_DESKTOP_PATH", desktop),
+        patch.object(startup, "_is_windows", return_value=False),
+    ):
         rc = startup.cmd_startup_disable(_Args())
     assert rc == 0
     assert not desktop.exists()
@@ -166,29 +181,37 @@ def test_cmd_disable_linux(tmp_path):
 
 def test_cmd_status_returns_zero(tmp_path):
     desktop = tmp_path / "autostart" / "syncthing-tray.desktop"
-    with patch.object(startup, "_DESKTOP_PATH", desktop), \
-         patch.object(startup, "_is_windows", return_value=False):
+    with (
+        patch.object(startup, "_DESKTOP_PATH", desktop),
+        patch.object(startup, "_is_windows", return_value=False),
+    ):
         assert startup.cmd_startup_status(_Args()) == 0
 
 
 def test_cmd_enable_windows():
     wr = _winreg_mock()
-    with patch.object(startup, "_is_windows", return_value=True), \
-         patch.dict(sys.modules, {"winreg": wr}):
+    with (
+        patch.object(startup, "_is_windows", return_value=True),
+        patch.dict(sys.modules, {"winreg": wr}),
+    ):
         assert startup.cmd_startup_enable(_Args()) == 0
     wr.SetValueEx.assert_called_once()
 
 
 def test_cmd_disable_windows():
     wr = _winreg_mock()
-    with patch.object(startup, "_is_windows", return_value=True), \
-         patch.dict(sys.modules, {"winreg": wr}):
+    with (
+        patch.object(startup, "_is_windows", return_value=True),
+        patch.dict(sys.modules, {"winreg": wr}),
+    ):
         assert startup.cmd_startup_disable(_Args()) == 0
     wr.DeleteValue.assert_called_once()
 
 
 def test_cmd_status_windows():
     wr = _winreg_mock(value_exists=True)
-    with patch.object(startup, "_is_windows", return_value=True), \
-         patch.dict(sys.modules, {"winreg": wr}):
+    with (
+        patch.object(startup, "_is_windows", return_value=True),
+        patch.dict(sys.modules, {"winreg": wr}),
+    ):
         assert startup.cmd_startup_status(_Args()) == 0

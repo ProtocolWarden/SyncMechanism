@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 #!/usr/bin/env python3
 """Syncthing install/upgrade tool — version-pinned, config-archiving."""
 
@@ -61,6 +63,7 @@ def _install_dir() -> Path:
 
 # ── detection ─────────────────────────────────────────────────────────────────
 
+
 def _installed_version() -> str:
     bin_name = "syncthing.exe" if _is_windows() else "syncthing"
     candidates: list[Path] = [_install_dir() / bin_name]
@@ -86,6 +89,7 @@ def _machine() -> str:
 
 
 # ── archive index ──────────────────────────────────────────────────────────────
+
 
 def _read_index() -> list[dict]:
     idx = _archive_dir() / "index.json"
@@ -119,6 +123,7 @@ def _archive_config(old_version: str) -> Path:
 
 
 # ── download / install ─────────────────────────────────────────────────────────
+
 
 def _download(version: str) -> Path:
     if _is_windows():
@@ -173,6 +178,7 @@ def _install_binary(binary: Path) -> None:
     if _is_windows():
         shutil.copy2(binary, dest)
         import winreg
+
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0, winreg.KEY_ALL_ACCESS)
         try:
             path_val, _ = winreg.QueryValueEx(key, "PATH")
@@ -187,6 +193,7 @@ def _install_binary(binary: Path) -> None:
 
 
 # ── commands ───────────────────────────────────────────────────────────────────
+
 
 @app.callback(invoke_without_command=True)
 def _default(ctx: typer.Context) -> None:

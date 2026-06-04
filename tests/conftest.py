@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 """Shared fixtures for SyncMechanism tests."""
 
 import json
@@ -29,10 +31,18 @@ def archive_dir(tmp_path: Path) -> Path:
 def populated_archive_dir(archive_dir: Path) -> Path:
     """Archive dir with two index entries and matching zip stubs."""
     entries = [
-        {"machine": "dev-box", "version": "1.25.0", "timestamp": "20260101T000000Z",
-         "archive": "dev-box_1.25.0_20260101T000000Z.zip"},
-        {"machine": "laptop", "version": "1.26.1", "timestamp": "20260201T000000Z",
-         "archive": "laptop_1.26.1_20260201T000000Z.zip"},
+        {
+            "machine": "dev-box",
+            "version": "1.25.0",
+            "timestamp": "20260101T000000Z",
+            "archive": "dev-box_1.25.0_20260101T000000Z.zip",
+        },
+        {
+            "machine": "laptop",
+            "version": "1.26.1",
+            "timestamp": "20260201T000000Z",
+            "archive": "laptop_1.26.1_20260201T000000Z.zip",
+        },
     ]
     (archive_dir / "index.json").write_text(json.dumps(entries, indent=2))
     for e in entries:

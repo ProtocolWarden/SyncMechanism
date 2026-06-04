@@ -50,6 +50,7 @@ _DESKTOP_TEMPLATE_XDG = (
 def _desktop_template() -> str:
     import os
     import shutil
+
     de = os.environ.get("XDG_CURRENT_DESKTOP", "")
     if "XFCE" in de or shutil.which("xfce4-session"):
         return _DESKTOP_TEMPLATE_XFCE
@@ -67,6 +68,7 @@ def _is_windows() -> bool:
 # ---------------------------------------------------------------------------
 # Linux — XDG autostart .desktop
 # ---------------------------------------------------------------------------
+
 
 def _enable_linux() -> None:
     _DESKTOP_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -90,8 +92,10 @@ def _status_linux() -> bool:
 # Windows — HKCU Run registry key
 # ---------------------------------------------------------------------------
 
+
 def _enable_windows() -> None:
     import winreg  # type: ignore[import]
+
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _REG_KEY, 0, winreg.KEY_SET_VALUE) as key:
         winreg.SetValueEx(key, _REG_VALUE, 0, winreg.REG_SZ, _tray_cmd())
     _LOG.info("startup enabled: HKCU\\%s\\%s", _REG_KEY, _REG_VALUE)
@@ -99,6 +103,7 @@ def _enable_windows() -> None:
 
 def _disable_windows() -> None:
     import winreg  # type: ignore[import]
+
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _REG_KEY, 0, winreg.KEY_SET_VALUE) as key:
             winreg.DeleteValue(key, _REG_VALUE)
@@ -109,6 +114,7 @@ def _disable_windows() -> None:
 
 def _status_windows() -> bool:
     import winreg  # type: ignore[import]
+
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, _REG_KEY, 0, winreg.KEY_READ) as key:
             winreg.QueryValueEx(key, _REG_VALUE)
@@ -120,6 +126,7 @@ def _status_windows() -> bool:
 # ---------------------------------------------------------------------------
 # Commands
 # ---------------------------------------------------------------------------
+
 
 def cmd_startup_enable(args: argparse.Namespace) -> int:
     if _is_windows():

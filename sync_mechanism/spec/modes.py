@@ -39,6 +39,4 @@ class SyncMode(str, Enum):
             return cls(value)
         except ValueError as exc:
             legal = ", ".join(repr(m.value) for m in cls)
-            raise ValueError(
-                f"unknown sync mode {value!r}; legal modes are: {legal}"
-            ) from exc
+            raise ValueError(f"unknown sync mode {value!r}; legal modes are: {legal}") from exc

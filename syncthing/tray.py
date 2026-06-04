@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Copyright (C) 2026 ProtocolWarden
 #!/usr/bin/env python3
 """
 Syncthing Tools — system tray app.
@@ -36,6 +38,7 @@ _pf_proc: Optional[subprocess.Popen] = None  # type: ignore[type-arg]
 
 # ── icon ──────────────────────────────────────────────────────────────────────
 
+
 def _make_icon() -> Image.Image:
     size = 64
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
@@ -52,6 +55,7 @@ def _make_icon() -> Image.Image:
 
 
 # ── terminal runner ────────────────────────────────────────────────────────────
+
 
 def _find_terminal() -> list[str] | None:
     """Return a command prefix that opens a new terminal window and runs its args."""
@@ -106,6 +110,7 @@ def _cli(*args: str) -> list[str]:
 
 # ── menu actions ──────────────────────────────────────────────────────────────
 
+
 def _action_check(icon: pystray.Icon, item: pystray.MenuItem) -> None:
     _run_in_terminal(_cli("install", "check"))
 
@@ -120,6 +125,7 @@ def _action_list(icon: pystray.Icon, item: pystray.MenuItem) -> None:
 
 def _startup_is_enabled(item: pystray.MenuItem) -> bool:
     from sync_mechanism.startup_cli import _is_windows, _status_linux, _status_windows
+
     return _status_windows() if _is_windows() else _status_linux()
 
 
@@ -131,6 +137,7 @@ def _action_toggle_startup(icon: pystray.Icon, item: pystray.MenuItem) -> None:
         _enable_windows,
         _is_windows,
     )
+
     if _startup_is_enabled(item):
         _disable_windows() if _is_windows() else _disable_linux()
     else:
@@ -146,6 +153,7 @@ def _action_quit(icon: pystray.Icon, item: pystray.MenuItem) -> None:
 
 
 # ── entry ─────────────────────────────────────────────────────────────────────
+
 
 def _start_portforward() -> None:
     global _pf_proc
