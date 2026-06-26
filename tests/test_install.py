@@ -152,3 +152,58 @@ def test_pinned_reads_version_file():
     parts = version.split(".")
     assert len(parts) == 3
     assert all(p.isdigit() for p in parts)
+
+
+# ── unit: disable Syncthing self-upgrade ────────────────────────────────────────
+
+
+def test_xml_auto_upgrade_off_replaces_existing():
+    src = "<options><autoUpgradeIntervalH>12</autoUpgradeIntervalH></options>"
+    out = install._xml_auto_upgrade_off(src)
+    assert "<autoUpgradeIntervalH>0</autoUpgradeIntervalH>" in out
+    assert "12" not in out
+
+
+def test_xml_auto_upgrade_off_injects_when_missing():
+    src = "<configuration><options><relaysEnabled>true</relaysEnabled></options></configuration>"
+    out = install._xml_auto_upgrade_off(src)
+    assert out.count("<autoUpgradeIntervalH>0</autoUpgradeIntervalH>") == 1
+
+
+def test_xml_auto_upgrade_off_noop_without_options():
+    src = "<configuration></configuration>"
+    assert install._xml_auto_upgrade_off(src) == src
+
+
+def test_disable_auto_upgrade_uses_live_daemon(monkeypatch):
+    """When the daemon answers, set via CLI and never touch the config file."""
+    calls = []
+
+    def fake_run(cmd, *a, **k):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    def _must_not_run():
+        raise AssertionError("must not edit config file when daemon is live")
+
+    monkeypatch.setattr(install.subprocess, "run", fake_run)
+    monkeypatch.setattr(install, "_find_config_xml", _must_not_run)
+    install._disable_auto_upgrade()
+    assert calls and calls[0][1:6] == ["cli", "config", "options", "auto-upgrade-intervalh", "set"]
+
+
+def test_disable_auto_upgrade_offline_edits_config(monkeypatch, tmp_path):
+    """When no daemon is reachable, edit config.xml directly."""
+    cfg = tmp_path / "config.xml"
+    cfg.write_text(
+        "<configuration><options><autoUpgradeIntervalH>12</autoUpgradeIntervalH></options></configuration>",
+        encoding="utf-8",
+    )
+
+    def fake_run(cmd, *a, **k):
+        return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="connection refused")
+
+    monkeypatch.setattr(install.subprocess, "run", fake_run)
+    monkeypatch.setattr(install, "_find_config_xml", lambda: cfg)
+    install._disable_auto_upgrade()
+    assert "<autoUpgradeIntervalH>0</autoUpgradeIntervalH>" in cfg.read_text(encoding="utf-8")

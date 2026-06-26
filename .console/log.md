@@ -2,6 +2,12 @@
 
 _Chronological continuity log. Decisions, stop points, what changed and why._
 
+## 2026-06-26T09:52Z — feat(install): disable Syncthing's built-in self-upgrader
+
+**Why**: SyncMechanism is the version-pinned upgrade authority, so Syncthing's own auto-upgrader is redundant — and noisy. When the binary lives in a root-owned dir (e.g. `/usr/local/bin`) but the daemon runs as a normal user, every auto-upgrade attempt fails `permission denied: open .../syncthing<rand>` and retries every few minutes forever (observed in the field).
+
+**What**: `install` now forces `autoUpgradeIntervalH=0` on every run (idempotent; also on the already-up-to-date path). If a daemon is reachable it sets it via `syncthing cli config options auto-upgrade-intervalh set 0` (applies live + persists); otherwise it ensures a config exists (`syncthing generate`) and edits `config.xml` offline. Best-effort — never fails the install. Added `_xml_auto_upgrade_off` + offline/live tests (18 pass), README note.
+
 ## 2026-05-23 — Initial extraction of the generic Syncthing mechanism
 
 - Created repo from the private fleet layer's generic Syncthing surface:
