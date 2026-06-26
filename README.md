@@ -19,7 +19,10 @@ sync-mechanism spec resolve   →  join a spec + private binding into a plan
 
 - A version-pinned Syncthing **install / upgrade** tool that archives the
   existing config before replacing the binary (`syncthing/install.py`,
-  `syncthing/version`).
+  `syncthing/version`). Because this repo *is* the upgrade authority, `install`
+  also disables Syncthing's built-in self-upgrader (`autoUpgradeIntervalH=0`) —
+  otherwise it spams "automatic upgrade failed: permission denied" when the
+  binary is in a root-owned dir but the daemon runs as a normal user.
 - A desktop **tray app** for one-click install/check/list and a login-startup
   toggle (`syncthing/tray.py`).
 - A **login-startup** mechanism: XDG autostart on Linux, HKCU Run registry

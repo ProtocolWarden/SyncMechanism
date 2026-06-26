@@ -192,6 +192,108 @@ def _install_binary(binary: Path) -> None:
         subprocess.run(["sudo", "install", "-m", "755", str(binary), str(dest)], check=True)
 
 
+# ── self-upgrade disable ─────────────────────────────────────────────────────────
+#
+# SyncMechanism is the version-pinned upgrade authority, so Syncthing's built-in
+# auto-upgrader is redundant — and noisy. When the binary lives in a root-owned
+# dir (e.g. /usr/local/bin) while the daemon runs as a normal user, every
+# auto-upgrade attempt fails ("permission denied: open .../syncthing<rand>") and
+# retries every few minutes forever. We force autoUpgradeIntervalH=0 (Syncthing's
+# documented disable value) on every install. Best-effort: never fails the install.
+
+_SELF_UPGRADE_OFF_MSG = "[dim]Syncthing self-upgrade disabled (SyncMechanism owns upgrades).[/dim]"
+
+
+def _syncthing_bin() -> str:
+    bin_name = "syncthing.exe" if _is_windows() else "syncthing"
+    return shutil.which("syncthing") or str(_install_dir() / bin_name)
+
+
+def _config_candidates() -> list[Path]:
+    """Default config.xml locations, most-likely first (covers v1/v2 + platforms)."""
+    if _is_windows():
+        return [
+            Path(base) / "Syncthing"
+            for env in ("LOCALAPPDATA", "APPDATA")
+            for base in (os.environ.get(env),)
+            if base
+        ]
+    home = Path.home()
+    return [
+        home / ".config" / "syncthing",
+        home / ".local" / "state" / "syncthing",
+        home / ".local" / "share" / "syncthing",
+    ]
+
+
+def _find_config_xml() -> Path | None:
+    for d in _config_candidates():
+        cfg = d / "config.xml"
+        if cfg.is_file():
+            return cfg
+    return None
+
+
+def _xml_auto_upgrade_off(text: str) -> str:
+    """Return config.xml text with autoUpgradeIntervalH forced to 0."""
+    pattern = r"<autoUpgradeIntervalH>\s*\d+\s*</autoUpgradeIntervalH>"
+    if re.search(pattern, text):
+        return re.sub(pattern, "<autoUpgradeIntervalH>0</autoUpgradeIntervalH>", text, count=1)
+    if "<options>" in text:  # option omitted (rare) — inject it
+        return text.replace(
+            "<options>", "<options>\n        <autoUpgradeIntervalH>0</autoUpgradeIntervalH>", 1
+        )
+    return text
+
+
+def _disable_auto_upgrade() -> None:
+    st = _syncthing_bin()
+
+    # A reachable daemon: set via the API so it applies live *and* persists.
+    try:
+        res = subprocess.run(
+            [st, "cli", "config", "options", "auto-upgrade-intervalh", "set", "0"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+        if res.returncode == 0 and "refused" not in (res.stderr or "").lower():
+            console.print(_SELF_UPGRADE_OFF_MSG)
+            return
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+    # No reachable daemon: ensure a config exists, then edit config.xml offline.
+    cfg = _find_config_xml()
+    if cfg is None:
+        try:
+            subprocess.run(
+                [st, "generate"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=30,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError):
+            pass
+        cfg = _find_config_xml()
+    if cfg is None:
+        console.print(
+            "[yellow]Note: could not locate Syncthing config to disable self-upgrade.\n"
+            "Run after first start: "
+            "syncthing cli config options auto-upgrade-intervalh set 0[/yellow]"
+        )
+        return
+    try:
+        text = cfg.read_text(encoding="utf-8")
+        updated = _xml_auto_upgrade_off(text)
+        if updated != text:
+            cfg.write_text(updated, encoding="utf-8")
+        console.print(_SELF_UPGRADE_OFF_MSG)
+    except OSError:
+        console.print("[yellow]Could not edit Syncthing config to disable self-upgrade.[/yellow]")
+
+
 # ── commands ───────────────────────────────────────────────────────────────────
 
 
@@ -240,6 +342,7 @@ def _do_install() -> None:
 
     if current == pinned:
         console.print("[green]Already at pinned version — nothing to do.[/green]")
+        _disable_auto_upgrade()  # idempotent — keep self-upgrade off on every run
         raise typer.Exit()
 
     if current and _config_dir().exists():
@@ -256,6 +359,7 @@ def _do_install() -> None:
         shutil.rmtree(archive.parent, ignore_errors=True)
 
     console.print(f"[green]Installed: v{_installed_version()}[/green]")
+    _disable_auto_upgrade()
     console.print(f"[dim]Archives: {_archive_dir()} — run 'install.py list' to browse[/dim]")
 
 
