@@ -24,6 +24,17 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.5",
 ]
+# Linux-only. Without GTK bindings, pystray falls back to its bare XEmbed
+# backend, whose right-click menu does not work under StatusNotifier trays
+# (Cinnamon, KDE, GNOME+extension); installing these makes pystray select the
+# working AppIndicator backend. Upper-bounded below 3.52 because 3.52+ requires
+# girepository-2.0, which distros on the girepository-1.0 line (e.g. Ubuntu
+# 22.04) do not ship. Needs system dev libs to build:
+# `apt install libgirepository1.0-dev libcairo2-dev`.
+tray-linux = [
+  "PyGObject>=3.50,<3.52 ; sys_platform == 'linux'",
+  "pycairo>=1.28 ; sys_platform == 'linux'",
+]
 
 [project.scripts]
 sync-mechanism = "sync_mechanism.main:main"

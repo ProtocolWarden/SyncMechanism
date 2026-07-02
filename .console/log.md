@@ -2,6 +2,21 @@
 
 _Chronological continuity log. Decisions, stop points, what changed and why._
 
+## 2026-07-02 — feat(tray): declare Linux GTK bindings as a `tray-linux` extra
+
+**Why**: On StatusNotifier desktops (Cinnamon/KDE/GNOME) pystray needs GTK
+bindings (`gi`) to select its AppIndicator backend. Without them it silently
+falls back to the bare XEmbed backend, which renders an icon whose right-click
+menu does not work — the tray looks dead. This was hit in the field (Cinnamon
+X11, venv on pyenv 3.12 sealed from the ABI-mismatched system `python3-gi`).
+
+**What**: Added `[project.optional-dependencies].tray-linux` = PyGObject
+(`>=3.50,<3.52`) + pycairo, both gated `sys_platform == 'linux'`. Upper bound is
+deliberate: PyGObject 3.52+ requires `girepository-2.0`, absent on the
+girepository-1.0 line (Ubuntu 22.04). Building needs system dev libs
+(`libgirepository1.0-dev`, `libcairo2-dev`), noted in a pyproject comment.
+Runtime deps unchanged; Windows/macOS unaffected (win32/darwin backends).
+
 ## 2026-06-26T09:52Z — feat(install): disable Syncthing's built-in self-upgrader
 
 **Why**: SyncMechanism is the version-pinned upgrade authority, so Syncthing's own auto-upgrader is redundant — and noisy. When the binary lives in a root-owned dir (e.g. `/usr/local/bin`) but the daemon runs as a normal user, every auto-upgrade attempt fails `permission denied: open .../syncthing<rand>` and retries every few minutes forever (observed in the field).
